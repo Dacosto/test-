@@ -6,10 +6,12 @@ const restartBtn = document.getElementById("restart");
 const marioImg = new Image();
 const enemyImg = new Image();
 const rewardImg = new Image();
+const gubitnickaImg = new Image();
 
 marioImg.src = "mario.png";
 enemyImg.src = "enemy.png";
 rewardImg.src = "reward.png";
+gubitnickaImg.src = "gubitnicka.png";
 
 // World
 const worldWidth = 2400;
@@ -92,6 +94,12 @@ const reward = {
   y: 500, // same height as ground enemies
   w: 40,
   h: 40
+};
+const gubitnicka = {
+    x: worldWidth - 600,
+    y: 600, 
+    w: 600,
+    h: 400
 };
 
 const gravity = 0.8;
@@ -205,9 +213,10 @@ function draw() {
 
   for (let se of staticEnemies)
     ctx.drawImage(enemyImg, se.x, se.y, se.w, se.h);
-
+  ctx.drawImage(gubitnickaImg, gubitnicka.x, gubitnicka.y, gubitnicka.w, gubitnicka.h);
   // Reward
   ctx.drawImage(rewardImg, reward.x, reward.y, reward.w, reward.h);
+  
 
   ctx.restore();
 
@@ -220,6 +229,7 @@ function draw() {
     ctx.fillStyle = "red";
     ctx.font = "48px Arial";
     ctx.fillText("CRKO SI PICKO MRTVA MAJKU TI JEBEM TI BI NA MAESTRA", 470, 300);
+    //tx.drawImage(gubitnickaImg, gubitnicka.x, gubitnicka.y, gubitnicka.w, gubitnicka.h);
   }
 
   if (win) {
@@ -229,7 +239,10 @@ function draw() {
   }
 }
 
-restartBtn.onclick = () => location.reload();
+function restart() {
+    location.reload();
+}
+restartBtn.onclick = () => restart(); 
 
 function loop() {
   update();
