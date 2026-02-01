@@ -1,6 +1,7 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const restartBtn = document.getElementById("restart");
+const LikeBtn = document.getElementById("Like");
 
 // Images
 const marioImg = new Image();
@@ -86,6 +87,7 @@ for (let i = 0; i < 12; i++) {
 }
 
 let score = 0;
+let like = 0; 
 
 // Reward (end)
 // Reward (ON THE GROUND)
@@ -183,6 +185,8 @@ function update() {
   if (rectCollide(mario, reward)) win = true;
 
   if (gameOver || win) restartBtn.style.display = "inline-block";
+  //LikeBtn.style.display = "inline-block";
+
 }
 
 function draw() {
@@ -224,11 +228,17 @@ function draw() {
   ctx.fillStyle = "black";
   ctx.font = "24px Arial";
   ctx.fillText(`Coins: ${score}`, 20, 40);
+ctx.fillStyle = "black";
+  ctx.font = "24px Arial";
+  ctx.fillText(`UPDATE 1.0.1: DODANA SLIKA PUSENJE KURCA, DODAN UPDATE NAPRAVLJENA FUNKCIJA RESTART SAD 1000 LAJKOVA ODMA I JEBEM BJELETICU SESTRU`, 20, 60);
+ // ctx.fillStyle = "black";
+  //ctx.font = "24px Arial";
+ // ctx.fillText(`LAJK SKOR: ${like}`, 20, 80);
 
   if (gameOver) {
     ctx.fillStyle = "red";
     ctx.font = "48px Arial";
-    ctx.fillText("CRKO SI PICKO MRTVA MAJKU TI JEBEM TI BI NA MAESTRA", 470, 300);
+    ctx.fillText("CRKO SI PICKO MRTVA MAJKU TI JEBEM TI BI NA MAESTRA", 470, 310);
     //tx.drawImage(gubitnickaImg, gubitnicka.x, gubitnicka.y, gubitnicka.w, gubitnicka.h);
   }
 
@@ -243,6 +253,8 @@ function restart() {
     location.reload();
 }
 restartBtn.onclick = () => restart(); 
+//LikeBtn.onclick = like++; 
+
 
 function loop() {
   update();
