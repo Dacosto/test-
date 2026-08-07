@@ -1,5 +1,3 @@
-
-
 const KEY='tipzone_demo_v2';
 const defaultData={leagues:['Champions League Qualification','Premier League','La Liga','Serie A','CAF Champions League'],games:[
 {id:1,home:'Kairat Almaty',away:'Levski Sofia',league:'Champions League Qualification',date:'2026-08-11',time:'17:00',tip:'Kairat Almaty to Win',odds:'2.50',confidence:'76',status:'pending'},
