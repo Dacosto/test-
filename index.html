@@ -1,25 +1,115 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-  <title>Bjeletic Picka mrtva</title>
-  <style>
-    body {
-      margin: 0;
-      background: #87ceeb;
-      text-align: center;
-    }
-    canvas {
-      background: #5c94fc;
-      display: block;
-      margin: auto;
-    }
-  </style>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TipZone Congo — Sportsbook Demo</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <canvas id="game" width="1600" height="920"></canvas>
-   <button id="restart" style="display:none; font-size:35px;">
-    Play Again
-  </button>
-  <script src="game.js"></script>
-</body>
-</html>
+<div id="app">
+<header class="topbar">
+  <div class="brand"><span class="brand-mark">TZ</span><div><b>TipZone</b><small>CONGO</small></div></div>
+  <nav>
+    <button class="nav-btn active" data-page="home">Football</button>
+    <button class="nav-btn" data-page="leagues">Leagues</button>
+    <button class="nav-btn" data-page="results">Results</button>
+    <button class="nav-btn" data-page="about">About us</button>
+  </nav>
+  <button id="adminOpen" class="admin-btn">Admin</button>
+</header>
+
+<main>
+<section id="homePage" class="page">
+  <div class="crumb">← &nbsp; Football <span>›</span> Qualification Champions League</div>
+  <div class="notice">⚡ Complete prediction markets are available below</div>
+
+  <div class="match-hero">
+    <div class="match-info">
+      <div class="tiny">11 AUG • 17:00 &nbsp; | &nbsp; #6413</div>
+      <h1>Kairat Almaty</h1><h1>Levski Sofia</h1>
+    </div>
+    <div class="hero-1x2">
+      <div><small>1</small><b>2.50</b></div>
+      <div><small>X</small><b>3.15</b></div>
+      <div><small>2</small><b>3.00</b></div>
+    </div>
+  </div>
+
+  <div class="prediction-head">
+    <div><span class="eyebrow">UPCOMING FIXTURES</span><h2>Match predictions</h2></div>
+    <div class="filters"><button class="filter active" onclick="renderPredictionGames('all')">All</button><button class="filter" onclick="renderPredictionGames('football')">Football</button></div>
+  </div>
+  <div id="predictionGames" class="prediction-games"></div>
+</section>
+
+<section id="matchPage" class="page hidden">
+  <div class="match-dashboard-head">
+    <button class="back-btn" onclick="showPage('home')">← Back to games</button>
+    <span id="dashboardLeague" class="dashboard-league"></span>
+  </div>
+  <div id="dashboardMatch" class="dashboard-match"></div>
+  <div class="market-dashboard">
+    <div id="dashboardMarkets"></div>
+    <aside class="selection-slip">
+      <div class="slip-title"><b>My selections</b><span id="selectionCount">0</span></div>
+      <div id="selectionList" class="selection-list"><div class="empty-selection">Click an odd to add it.</div></div>
+      <div class="selection-total"><span>Total selections</span><b id="selectionTotal">0</b></div>
+      <button class="primary full" onclick="demoAction()">SAVE PREDICTION</button>
+      <small class="demo-note">Demo only — no real-money betting.</small>
+    </aside>
+  </div>
+</section>
+
+<section id="leaguesPage" class="page hidden">
+  <div class="page-title"><span class="eyebrow">COMPETITIONS</span><h1>Leagues</h1><p>Browse available football competitions and their prediction markets.</p></div>
+  <div id="leagueGrid" class="league-grid"></div>
+</section>
+
+<section id="resultsPage" class="page hidden">
+  <div class="page-title"><span class="eyebrow">TRACK RECORD</span><h1>Results</h1><p>Published prediction results.</p></div>
+  <div id="resultsGrid" class="results-grid"></div>
+</section>
+
+<section id="aboutPage" class="page hidden">
+  <div class="about">
+    <span class="eyebrow">ABOUT TIPZONE</span>
+    <h1>Built in Congo.<br><span>Made for football fans.</span></h1>
+    <p>TipZone is a sports prediction platform from <b>Congo</b>, created to give football fans a clean place to explore fixtures, markets, odds-style information and prediction tips.</p>
+    <div class="about-grid">
+      <div><b>🇨🇬 Congo</b><small>Our home</small></div>
+      <div><b>⚽ Football</b><small>Our focus</small></div>
+      <div><b>📊 Predictions</b><small>Our product</small></div>
+    </div>
+    <div class="about-box"><h2>Our mission</h2><p>We want to make sports information easier to understand, with transparent prediction records and a simple interface. TipZone is currently presented as a prediction and sportsbook-style demo; it does not process real-money bets.</p></div>
+  </div>
+</section>
+
+<section id="adminPage" class="page hidden">
+  <div class="admin-header"><div><span class="eyebrow">CONTROL CENTER</span><h1>Admin dashboard</h1></div><button id="logout" class="ghost">Log out</button></div>
+  <div class="stats"><div><small>Games</small><strong id="statGames">0</strong></div><div><small>Leagues</small><strong id="statLeagues">0</strong></div><div><small>Markets</small><strong>Live demo</strong></div></div>
+  <div class="admin-columns">
+    <div class="panel"><div class="panel-head"><h2>Add game</h2></div>
+      <form id="gameForm">
+        <label>Home team<input name="home" required placeholder="Kairat Almaty"></label>
+        <label>Away team<input name="away" required placeholder="Levski Sofia"></label>
+        <label>League<select name="league" id="gameLeague"></select></label>
+        <div class="two"><label>Date<input name="date" type="date" required></label><label>Time<input name="time" type="time" required></label></div>
+        <label>Prediction market<input name="tip" required placeholder="e.g. Manchester City to Win"></label>
+        <div class="two"><label>Odd<input name="odds" type="number" step="0.01" min="1.01" value="1.80" required></label><label>Confidence %<input name="confidence" type="number" min="1" max="100" value="75" required></label></div>
+        <button class="primary full">Add game</button>
+      </form>
+    </div>
+    <div class="panel"><div class="panel-head"><h2>Manage leagues</h2></div>
+      <form id="leagueForm" class="inline-form"><input name="name" required placeholder="New league name"><button class="primary">Add</button></form>
+      <div id="adminLeagues"></div>
+    </div>
+  </div>
+  <div class="panel"><div class="panel-head"><h2>Manage games</h2></div><div id="adminGames"></div></div>
+</section>
+</main>
+
+<div id="loginModal" class="modal hidden"><div class="modal-box"><button class="close" onclick="closeModal()">×</button><span class="eyebrow">RESTRICTED</span><h2>Admin login</h2><p>Demo credentials: <b>admin</b> / <b>admin123</b></p><form id="loginForm"><input name="user" placeholder="Username" required><input name="pass" type="password" placeholder="Password" required><button class="primary full">Sign in</button><div id="loginError" class="error"></div></form></div></div>
+<div id="toast"></div>
+</div>
+<script src="app.js"></script>
+</body></html>
