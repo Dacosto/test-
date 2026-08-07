@@ -1,265 +1,41 @@
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
-const restartBtn = document.getElementById("restart");
-const LikeBtn = document.getElementById("Like");
-
-// Images
-const marioImg = new Image();
-const enemyImg = new Image();
-const rewardImg = new Image();
-const gubitnickaImg = new Image();
-
-marioImg.src = "mario.png";
-enemyImg.src = "enemy.png";
-rewardImg.src = "reward.png";
-gubitnickaImg.src = "gubitnicka.png";
-
-// World
-const worldWidth = 2400;
-let cameraX = 0;
-
-// Keyboard
-const keys = {};
-document.addEventListener("keydown", e => {
-  if (e.code === "Space" || e.code.startsWith("Arrow")) e.preventDefault();
-  keys[e.code] = true;
-
-  if (e.code === "Space" && !mario.jumping) {
-    mario.vy = -15;
-    mario.jumping = true;
-  }
-});
-document.addEventListener("keyup", e => keys[e.code] = false);
-
-// Player
-const mario = {
-  x: 60,
-  y: 480,
-  w: 40,
-  h: 40,
-  vy: 0,
-  jumping: false,
-  speed: 5
-};
-
-// Platforms (IMPROVED)
-const platforms = [
-  { x: 0, y: 540, w: worldWidth, h: 60 }, // ground
-  { x: 300, y: 420, w: 180, h: 20 },
-  { x: 600, y: 350, w: 180, h: 20 },
-  { x: 900, y: 280, w: 180, h: 20 },
-  { x: 1200, y: 350, w: 180, h: 20 },
-  { x: 1500, y: 420, w: 180, h: 20 },
-  { x: 1800, y: 300, w: 200, h: 20 }
-];
-
-// Moving enemies (ground)
-const enemies = [];
-for (let i = 0; i < 6; i++) {
-  enemies.push({
-    x: 400 + i * 300,
-    y: 500,
-    w: 40,
-    h: 40,
-    speed: 2,
-    dir: Math.random() > 0.5 ? 1 : -1
-  });
-}
-
-// Static enemies on platforms
-const staticEnemies = [
-  { x: 340, y: 380, w: 40, h: 40 },
-  { x: 640, y: 310, w: 40, h: 40 },
-  { x: 940, y: 240, w: 40, h: 40 },
-  { x: 1240, y: 310, w: 40, h: 40 },
-  { x: 1840, y: 260, w: 40, h: 40 }
-];
-
-// Coins
-const coins = [];
-for (let i = 0; i < 12; i++) {
-  coins.push({
-    x: 350 + i * 160,
-    y: 250 + (i % 2) * 60,
-    r: 8,
-    collected: false
-  });
-}
-
-let score = 0;
-let like = 0; 
-
-// Reward (end)
-// Reward (ON THE GROUND)
-const reward = {
-  x: worldWidth - 120,
-  y: 500, // same height as ground enemies
-  w: 40,
-  h: 40
-};
-const gubitnicka = {
-    x: worldWidth - 600,
-    y: 600, 
-    w: 600,
-    h: 400
-};
-
-const gravity = 0.8;
-let gameOver = false;
-let win = false;
-
-// Collision helpers
-function rectCollide(a, b) {
-  return (
-    a.x < b.x + b.w &&
-    a.x + a.w > b.x &&
-    a.y < b.y + b.h &&
-    a.y + a.h > b.y
-  );
-}
-
-function circleRect(circle, rect) {
-  return (
-    circle.x + circle.r > rect.x &&
-    circle.x - circle.r < rect.x + rect.w &&
-    circle.y + circle.r > rect.y &&
-    circle.y - circle.r < rect.y + rect.h
-  );
-}
-
-function update() {
-  if (gameOver || win) return;
-
-  // Move
-  if (keys["ArrowRight"] || keys["KeyD"]) mario.x += mario.speed;
-  if (keys["ArrowLeft"] || keys["KeyA"]) mario.x -= mario.speed;
-
-  // Gravity
-  mario.vy += gravity;
-  mario.y += mario.vy;
-
-  mario.jumping = true;
-  for (let p of platforms) {
-    if (
-      mario.x < p.x + p.w &&
-      mario.x + mario.w > p.x &&
-      mario.y + mario.h <= p.y + 12 &&
-      mario.y + mario.h + mario.vy >= p.y
-    ) {
-      mario.y = p.y - mario.h;
-      mario.vy = 0;
-      mario.jumping = false;
-    }
-  }
-
-  // Bounds
-  if (mario.x < 0) mario.x = 0;
-  if (mario.x + mario.w > worldWidth)
-    mario.x = worldWidth - mario.w;
-
-  // Camera
-  cameraX = mario.x - canvas.width / 2;
-  cameraX = Math.max(0, Math.min(cameraX, worldWidth - canvas.width));
-
-  // Moving enemies
-  for (let e of enemies) {
-    e.x += e.speed * e.dir;
-    if (e.x < 0 || e.x + e.w > worldWidth) e.dir *= -1;
-    if (rectCollide(mario, e)) gameOver = true;
-  }
-
-  // Static enemies
-  for (let se of staticEnemies) {
-    if (rectCollide(mario, se)) gameOver = true;
-  }
-
-  // Coins
-  for (let c of coins) {
-    if (!c.collected && circleRect(c, mario)) {
-      c.collected = true;
-      score++;
-    }
-  }
-
-  // Win
-  if (rectCollide(mario, reward)) win = true;
-
-  if (gameOver || win) restartBtn.style.display = "inline-block";
-  //LikeBtn.style.display = "inline-block";
-
-}
-
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.save();
-  ctx.translate(-cameraX, 0);
-
-  // Platforms
-  ctx.fillStyle = "#6b4f2a";
-  for (let p of platforms) ctx.fillRect(p.x, p.y, p.w, p.h);
-
-  // Coins
-  ctx.fillStyle = "gold";
-  for (let c of coins) {
-    if (!c.collected) {
-      ctx.beginPath();
-      ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-
-  // Player
-  ctx.drawImage(marioImg, mario.x, mario.y, mario.w, mario.h);
-
-  // Enemies
-  for (let e of enemies)
-    ctx.drawImage(enemyImg, e.x, e.y, e.w, e.h);
-
-  for (let se of staticEnemies)
-    ctx.drawImage(enemyImg, se.x, se.y, se.w, se.h);
-  ctx.drawImage(gubitnickaImg, gubitnicka.x, gubitnicka.y, gubitnicka.w, gubitnicka.h);
-  // Reward
-  ctx.drawImage(rewardImg, reward.x, reward.y, reward.w, reward.h);
-  
-
-  ctx.restore();
-
-  // UI
-  ctx.fillStyle = "black";
-  ctx.font = "24px Arial";
-  ctx.fillText(`Coins: ${score}`, 20, 40);
-ctx.fillStyle = "black";
-  ctx.font = "24px Arial";
-  ctx.fillText(`UPDATE 1.0.1: DODANA SLIKA PUSENJE KURCA, DODAN UPDATE NAPRAVLJENA FUNKCIJA RESTART SAD 1000 LAJKOVA ODMA I JEBEM BJELETICU SESTRU`, 20, 60);
- // ctx.fillStyle = "black";
-  //ctx.font = "24px Arial";
- // ctx.fillText(`LAJK SKOR: ${like}`, 20, 80);
-
-  if (gameOver) {
-    ctx.fillStyle = "red";
-    ctx.font = "48px Arial";
-    ctx.fillText("CRKO SI PICKO MRTVA MAJKU TI JEBEM TI BI NA MAESTRA", 470, 310);
-    //tx.drawImage(gubitnickaImg, gubitnicka.x, gubitnicka.y, gubitnicka.w, gubitnicka.h);
-  }
-
-  if (win) {
-    ctx.fillStyle = "gold";
-    ctx.font = "48px Arial";
-    ctx.fillText("PUSI KURAC MRTVU TI MAJKU JEBEM LIZI JOJ PICKU!", 500, 300);
-  }
-}
-
-function restart() {
-    location.reload();
-}
-restartBtn.onclick = () => restart(); 
-//LikeBtn.onclick = like++; 
 
 
-function loop() {
-  update();
-  draw();
-  requestAnimationFrame(loop);
-}
-
-loop();
+const KEY='tipzone_demo_v2';
+const defaultData={leagues:['Champions League Qualification','Premier League','La Liga','Serie A','CAF Champions League'],games:[
+{id:1,home:'Kairat Almaty',away:'Levski Sofia',league:'Champions League Qualification',date:'2026-08-11',time:'17:00',tip:'Kairat Almaty to Win',odds:'2.50',confidence:'76',status:'pending'},
+{id:2,home:'Manchester City',away:'Arsenal',league:'Premier League',date:'2026-08-12',time:'20:00',tip:'Over 2.5 Goals',odds:'1.72',confidence:'81',status:'pending'},
+{id:3,home:'Barcelona',away:'Real Madrid',league:'La Liga',date:'2026-08-13',time:'21:00',tip:'Both Teams To Score',odds:'1.65',confidence:'78',status:'pending'}]};
+let data=JSON.parse(localStorage.getItem(KEY)||'null')||defaultData;
+data.games.forEach(g=>{if(!g.tip)g.tip=g.home+' to Win';if(!g.odds)g.odds='1.80';if(!g.confidence)g.confidence='75'});
+let isAdmin=false,currentMatch=null,selections=[];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+function renderPredictionGames(){const box=document.getElementById('predictionGames');if(!box)return;box.innerHTML=data.games.length?data.games.map(g=>`<article class="prediction-card" onclick="openMatch(${g.id})"><div class="pc-top"><span class="league-name">${esc(g.league)}</span><span>#${g.id} • ${g.date} ${g.time}</span></div><div class="pc-main"><div><div class="pc-date">${g.date} • ${g.time}</div><div class="pc-teams"><span class="team-name">${esc(g.home)}</span><span class="vs">VS</span><span class="team-name">${esc(g.away)}</span></div></div><div class="pc-prediction"><div class="pc-tip"><small>TIPZONE TIP</small><strong>${esc(g.tip)}</strong></div><div class="pc-odd"><small>ODD</small><b>${esc(g.odds)}</b></div></div></div><div class="pc-bottom"><span>Confidence: <b class="pc-confidence">${g.confidence}%</b></span><span class="pc-select">VIEW ODDS →</span></div></article>`).join(''):'<div class="prediction-empty">No games have been added yet.</div>'}
+const markets=[
+['Full Time Result',[['1','2.50'],['X','3.15'],['2','3.00']]],
+['Double Chance',[['1X','1.39'],['12','1.36'],['X2','1.54']]],
+['Both Teams To Score',[['GG','1.92'],['NG','1.78'],['GG 3+','2.65'],['No GG 3+','1.32']]],
+['Total Goals',[['0-1','2.70'],['2+','1.40'],['0-2','1.60'],['3+','2.20'],['0-3','1.19'],['4+','4.20'],['5+','9.00'],['6+','22.0'],['7+','60.0'],['1-2','1.87'],['1-3','1.35'],['1-4','1.15']]],
+['Half Time Result',[['1','2.95'],['X','2.10'],['2','3.80']]],
+['First Team To Score',[['Home','1.55'],['Away','2.25'],['No Goal','8.00']]],
+['Over / Under 2.5',[['Over 2.5','1.72'],['Under 2.5','2.05']]]];
+function openMatch(id){currentMatch=data.games.find(g=>g.id===id);if(!currentMatch)return;selections=[];document.getElementById('dashboardLeague').textContent=currentMatch.league;document.getElementById('dashboardMatch').innerHTML=`<div class="dashboard-team"><div class="dashboard-time">${currentMatch.date} • ${currentMatch.time}</div><b>${esc(currentMatch.home)}</b></div><div class="dashboard-vs">VS</div><div class="dashboard-team"><div class="dashboard-time">MATCH ODDS</div><b>${esc(currentMatch.away)}</b></div>`;renderDashboardMarkets();renderSelections();showPage('match')}
+function renderDashboardMarkets(){document.getElementById('dashboardMarkets').innerHTML=markets.map((m,mi)=>`<div class="market-section"><div class="market-section-title">${m[0]}</div><div class="market-odds ${m[1].length>3?'four':''}">${m[1].map((o,oi)=>`<button class="dashboard-odd" id="odd-${mi}-${oi}" onclick="event.stopPropagation();chooseOdd('${esc(m[0])}','${esc(o[0])}','${o[1]}',${mi},${oi})"><span>${esc(o[0])}</span><b>${o[1]}</b></button>`).join('')}</div></div>`).join('')}
+function chooseOdd(market,label,odd,mi,oi){const key=mi+'-'+oi;const idx=selections.findIndex(x=>x.key===key);if(idx>=0)selections.splice(idx,1);else selections.push({key,market,label,odd});const el=document.getElementById('odd-'+key);if(el)el.classList.toggle('selected',idx<0);renderSelections()}
+function renderSelections(){document.getElementById('selectionCount').textContent=selections.length;document.getElementById('selectionTotal').textContent=selections.length;document.getElementById('selectionList').innerHTML=selections.length?selections.map((s,i)=>`<div class="selection-item"><div class="sel-market">${esc(s.market)}</div><div class="sel-main"><span>${esc(s.label)}</span><b>${s.odd}</b><button onclick="removeSelection(${i})">×</button></div></div>`).join(''):'<div class="empty-selection">Click an odd to add it.</div>'}
+function removeSelection(i){const s=selections[i];selections.splice(i,1);const parts=s.key.split('-');const el=document.getElementById('odd-'+parts[0]+'-'+parts[1]);if(el)el.classList.remove('selected');renderSelections()}
+function showPage(n){document.querySelectorAll('.page').forEach(x=>x.classList.add('hidden'));const page=document.getElementById(n+'Page');if(page)page.classList.remove('hidden');document.querySelectorAll('.nav-btn').forEach(x=>x.classList.toggle('active',x.dataset.page===n));if(n==='leagues')renderLeagues();if(n==='results')renderResults()}
+document.querySelectorAll('.nav-btn').forEach(b=>b.onclick=()=>showPage(b.dataset.page));
+function renderLeagues(){document.getElementById('leagueGrid').innerHTML=data.leagues.map(l=>`<div class="league-card"><div>⚽</div><h3>${esc(l)}</h3><p>${data.games.filter(g=>g.league===l).length} scheduled games</p></div>`).join('')}
+function renderResults(){document.getElementById('resultsGrid').innerHTML=data.games.map(g=>`<div class="result"><span><b>${esc(g.home)} vs ${esc(g.away)}</b><br><small>${esc(g.league)} · ${g.date} ${g.time}</small></span><strong style="color:#ffcf4b">PENDING</strong></div>`).join('')}
+document.getElementById('adminOpen').onclick=()=>isAdmin?showPage('admin'):document.getElementById('loginModal').classList.remove('hidden');
+function closeModal(){document.getElementById('loginModal').classList.add('hidden');document.getElementById('loginError').textContent=''}
+document.getElementById('loginForm').onsubmit=e=>{e.preventDefault();let f=new FormData(e.target);if(f.get('user')==='admin'&&f.get('pass')==='admin123'){isAdmin=true;closeModal();showPage('admin');renderAdmin()}else document.getElementById('loginError').textContent='Invalid credentials.'}
+document.getElementById('logout').onclick=()=>{isAdmin=false;showPage('home')}
+document.getElementById('gameForm').onsubmit=e=>{e.preventDefault();let f=new FormData(e.target);data.games.push({id:Date.now(),home:f.get('home'),away:f.get('away'),league:f.get('league'),date:f.get('date'),time:f.get('time'),tip:f.get('tip'),odds:f.get('odds'),confidence:f.get('confidence'),status:'pending'});localStorage.setItem(KEY,JSON.stringify(data));e.target.reset();renderAdmin();renderPredictionGames();toast('Game added')}
+document.getElementById('leagueForm').onsubmit=e=>{e.preventDefault();let n=new FormData(e.target).get('name').trim();if(!n)return;if(data.leagues.includes(n))return toast('League already exists');data.leagues.push(n);localStorage.setItem(KEY,JSON.stringify(data));e.target.reset();renderAdmin();toast('League added')}
+function deleteGame(id){data.games=data.games.filter(g=>g.id!==id);localStorage.setItem(KEY,JSON.stringify(data));renderAdmin();renderPredictionGames()}
+function deleteLeague(n){if(data.games.some(g=>g.league===n))return toast('Delete its games first');data.leagues=data.leagues.filter(x=>x!==n);localStorage.setItem(KEY,JSON.stringify(data));renderAdmin()}
+function renderAdmin(){document.getElementById('statGames').textContent=data.games.length;document.getElementById('statLeagues').textContent=data.leagues.length;document.getElementById('gameLeague').innerHTML=data.leagues.map(x=>`<option>${esc(x)}</option>`).join('');document.getElementById('adminLeagues').innerHTML=data.leagues.map(x=>`<div class="league-admin"><span>${esc(x)}</span><button class="danger" onclick="deleteLeague('${esc(x)}')">Delete</button></div>`).join('');document.getElementById('adminGames').innerHTML=data.games.map(g=>`<div class="game-admin"><div><b>${esc(g.home)} vs ${esc(g.away)}</b><div class="muted">${esc(g.league)} · ${g.date} ${g.time} · Tip: ${esc(g.tip)} · Odd: ${esc(g.odds)}</div></div><button class="danger" onclick="deleteGame(${g.id})">Delete</button></div>`).join('')}
+function demoAction(){toast('Demo only — prediction not placed')}
+function toast(t){let x=document.getElementById('toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),1700)}
+renderPredictionGames();renderAdmin();
